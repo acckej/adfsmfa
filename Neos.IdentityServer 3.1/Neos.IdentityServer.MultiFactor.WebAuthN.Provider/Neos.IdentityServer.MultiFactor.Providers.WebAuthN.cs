@@ -24,9 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Neos.IdentityServer.MultiFactor.WebAuthN
 {
@@ -445,7 +443,6 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
                         Trace.WriteLine("WebAuthNAdapter Created");
                         _isinitialized = true;
                         Trace.WriteLine("WebAuthNProvider Initialized");
-                        return;
                     }
                     else
                         throw new InvalidCastException("Invalid WebAuthN Provider !");                   
@@ -518,8 +515,7 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
         {
             if (ctx.UIMode == ProviderPageMode.EnrollBiometrics)
                 return GetRegisterCredentialOptions(ctx);
-            else
-                return GetLoginAssertionsOptions(ctx);
+            return GetLoginAssertionsOptions(ctx);
         }
 
         /// <summary>
@@ -565,8 +561,7 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
                 throw new Exception("Provider not initialized !");
             if (ctx.UIMode == ProviderPageMode.EnrollBiometrics)
                 return (int)SetRegisterCredentialResult(ctx, result, out error);
-            else
-                return (int)SetLoginAssertionResult(ctx, result, out error);
+            return (int)SetLoginAssertionResult(ctx, result, out error);
         }
 
         #region IWebAuthNProvider
@@ -636,7 +631,7 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
             }
             catch (Exception e)
             {
-                Log.WriteEntry(string.Format("{0}\r\n{1}", upn, e.Message), EventLogEntryType.Error, 5000);
+                Log.WriteErrorEntry($"Error getting stored user credentials: {upn}\r\n", e);
                 throw e;
             }
         }
@@ -667,7 +662,7 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
             }
             catch (Exception e)
             {
-                Log.WriteEntry(string.Format("{0}\r\n{1}", upn, e.Message), EventLogEntryType.Error, 5000);
+                Log.WriteErrorEntry($"Error removing stored user credentials: {upn}\r\n", e);
                 throw e;
             }
         }
@@ -717,7 +712,7 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
                 }
                 else
                 {
-                    Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, "User does not exists !"), EventLogEntryType.Error, 5000);
+                    Log.WriteEntry($"{ctx.UPN}\r\n{"User does not exists !"}", EventLogEntryType.Error, 5000);
                     string result = (new CredentialMakeResult { Status = "error", ErrorMessage = string.Format("{0}", "User does not exists !") }).ToJson();
                     ctx.CredentialOptions = result;
                     return result;
@@ -725,7 +720,7 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
             }
             catch (Exception e)
             {
-                Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, e.Message), System.Diagnostics.EventLogEntryType.Error, 5000);
+                Log.WriteErrorEntry($"Error getting getting registered credentials options: {ctx.UPN}\r\n", e);
                 string result = (new CredentialMakeResult { Status = "error", ErrorMessage = string.Format("{0}{1}", e.Message, e.InnerException != null ? " (" + e.InnerException.Message + ")" : "") }).ToJson();
                 ctx.CredentialOptions = result;
                 return result;
@@ -778,19 +773,17 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
                     error = string.Empty;
                     return (int)AuthenticationResponseKind.Biometrics;
                 }
-                else
-                {
-                    Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, "User does not exists !"), System.Diagnostics.EventLogEntryType.Error, 5000);
-                    error = string.Format("{0}\r\n{1}", ctx.UPN, "User does not exists !");
-                    return (int)AuthenticationResponseKind.Error;
-                }
+
+                Log.WriteEntry($"{ctx.UPN}\r\n{"User does not exists !"}", System.Diagnostics.EventLogEntryType.Error, 5000);
+                error = $"{ctx.UPN}\r\n{"User does not exists !"}";
+                return (int)AuthenticationResponseKind.Error;
             }
             catch (Exception e)
             {
-                if (isDeserialized)
-                    Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, e.Message), EventLogEntryType.Error, 5000);
-                else
-                    Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, jsonResponse), EventLogEntryType.Error, 5000);
+                Log.WriteErrorEntry(
+                    isDeserialized
+                        ? $"Error setting getting registered credentials options: {ctx.UPN}\r\n"
+                        : $"Error setting getting registered credentials options: {ctx.UPN}\r\n{jsonResponse}", e);
                 error = e.Message;
                 return (int)AuthenticationResponseKind.Error;
             }
@@ -829,8 +822,11 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
             }
             catch (Exception e)
             {
-                Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, e.Message), EventLogEntryType.Error, 5000);
-                string result = (new AssertionOptions { Status = "error", ErrorMessage = string.Format("{0} / {1}", e.Message, e.InnerException != null ? " (" + e.InnerException.Message + ")" : "") }).ToJson();
+                Log.WriteErrorEntry($"Error getting login assertion options: {ctx.UPN}\r\n", e);
+
+                var result = (new AssertionOptions { Status = "error", ErrorMessage =
+                    $"{e.Message} / {(e.InnerException != null ? " (" + e.InnerException.Message + ")" : "")}"
+                }).ToJson();
                 ctx.AssertionOptions = result;
                 return result;                
             }
@@ -887,14 +883,8 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
 
                         // Apple counter always 0
                         AssertionVerificationResult res = _webathn.SetAssertionResult(clientResponse, options, creds.PublicKey, storedCounter, callback).Result;
-                        if (!isnocount)
-                        {
-                            RuntimeRepository.UpdateCounter(Config, user, res.CredentialId, res.Counter);
-                        }
-                        else
-                        {
-                            RuntimeRepository.UpdateCounter(Config, user, res.CredentialId, 0);
-                        }
+                        RuntimeRepository.UpdateCounter(Config, user, res.CredentialId,
+                            !isnocount ? res.Counter : 0);
 
                         if (!authData.UserPresent || !authData.UserVerified)
                         {
@@ -933,24 +923,22 @@ namespace Neos.IdentityServer.MultiFactor.WebAuthN
                     }
                     catch (Exception ex)
                     {
-                        if (isDeserialized)
-                            Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, ex.Message), EventLogEntryType.Error, 5000);
-                        else
-                            Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, jsonResponse), EventLogEntryType.Error, 5000);
+                        Log.WriteErrorEntry(
+                            isDeserialized
+                                ? $"Error setting login assertion result: {ctx.UPN}\r\n"
+                                : $"Error setting login assertion result: {ctx.UPN}\r\n{jsonResponse}", ex);
                         error = ex.Message;
                         return (int)AuthenticationResponseKind.Error;
                     }
                 }
-                else
-                {
-                    Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, "User does not exists !"), EventLogEntryType.Error, 5000);
-                    error = string.Format("{0}\r\n{1}", ctx.UPN, "User does not exists !");
-                    return (int)AuthenticationResponseKind.Error;
-                }
+
+                Log.WriteEntry($"{ctx.UPN}\r\nUser does not exists !", EventLogEntryType.Error, 5000);
+                error = $"{ctx.UPN}\r\nUser does not exists !";
+                return (int)AuthenticationResponseKind.Error;
             }
             catch (Exception e)
             {
-                Log.WriteEntry(string.Format("{0}\r\n{1}", ctx.UPN, e.Message), EventLogEntryType.Error, 5000);
+                Log.WriteErrorEntry($"Error setting login assertion result: {ctx.UPN}\r\n", e);
                 error = e.Message;
                 return (int)AuthenticationResponseKind.Error;
             }

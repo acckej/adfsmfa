@@ -38,7 +38,7 @@
   </Favorites>
   <ScopeTree>
     <SnapinCache>
-      <Snapin CLSID="FX:{9627f1f3-a6d2-4cf8-90a2-10f85a7a4ee7}" AllExtensionsEnabled="false">
+      <Snapin CLSID="FX:{9627f1f3-a6d2-4cf8-90a2-10f85a7a4ee8}" AllExtensionsEnabled="false">
         <Extensions/>
       </Snapin>
       <Snapin CLSID="{82C37898-7808-11D1-A190-0000F875B132}" AllExtensionsEnabled="true"/>
@@ -47,18 +47,18 @@
     <Nodes>
       <Node ID="1" ImageIdx="0" CLSID="{C96401CC-0E17-11D3-885B-00C04F72C717}" Preload="true">
         <Nodes>
-          <Node ID="2" ImageIdx="0" CLSID="FX:{9627f1f3-a6d2-4cf8-90a2-10f85a7a4ee7}" Preload="true">
+          <Node ID="2" ImageIdx="0" CLSID="FX:{9627f1f3-a6d2-4cf8-90a2-10f85a7a4ee8}" Preload="true">
             <Nodes/>
             <String Name="Name" ID="2"/>
             <ComponentDatas>
               <ComponentData>
-                <GUID Name="Snapin">FX:{9627f1f3-a6d2-4cf8-90a2-10f85a7a4ee7}</GUID>
+                <GUID Name="Snapin">FX:{9627f1f3-a6d2-4cf8-90a2-10f85a7a4ee8}</GUID>
                 <Stream BinaryRefIndex="0"/>
               </ComponentData>
             </ComponentDatas>
             <Components>
               <Component ViewID="1">
-                <GUID Name="Snapin">FX:{9627f1f3-a6d2-4cf8-90a2-10f85a7a4ee7}</GUID>
+                <GUID Name="Snapin">FX:{9627f1f3-a6d2-4cf8-90a2-10f85a7a4ee8}</GUID>
                 <Stream BinaryRefIndex="1"/>
               </Component>
             </Components>

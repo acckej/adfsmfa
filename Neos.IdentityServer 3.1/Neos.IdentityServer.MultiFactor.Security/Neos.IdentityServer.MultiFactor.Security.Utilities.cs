@@ -15,7 +15,7 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
-using System.Threading;
+using System.Text;
 using System.Xml.Serialization;
 
 namespace Neos.IdentityServer.MultiFactor
@@ -468,6 +468,27 @@ namespace Neos.IdentityServer.MultiFactor
         public static void WriteEntry(string message, EventLogEntryType type, int eventID)
         {
             EventLog.WriteEntry(EventLogSource, message, type, eventID);
+        }
+
+        /// <summary>
+        /// WriteEntry method implementation
+        /// </summary>
+        public static void WriteErrorEntry(string message, Exception ex)
+        {
+            var msg = ex.ToString();
+
+            if (ex is AggregateException agg)
+            {
+                var sb = new StringBuilder($"{ex.Message} \n");
+                foreach (var err in agg.InnerExceptions)
+                {
+                    sb.AppendFormat("{0} \n", err);
+                }
+
+                msg = sb.ToString();
+            }
+
+            EventLog.WriteEntry(EventLogSource, $"{message} {msg}", EventLogEntryType.Error, 5000);
         }
     }
     #endregion

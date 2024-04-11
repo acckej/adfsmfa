@@ -432,7 +432,7 @@ namespace Neos.IdentityServer.Deployment
                 RegistryKey rkey64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
                 try
                 {
-                    RegistryKey key = rkey64.OpenSubKey(@"Software\Microsoft\MMC\Snapins\FX:{9627F1F3-A6D2-4cf8-90A2-10F85A7A4EE7}", RegistryKeyPermissionCheck.ReadSubTree);
+                    RegistryKey key = rkey64.OpenSubKey(@"Software\Microsoft\MMC\Snapins\FX:{9627F1F3-A6D2-4cf8-90A2-10F85A7A4EE8}", RegistryKeyPermissionCheck.ReadSubTree);
                     try
                     {
                         object o = key.GetValue("Type");

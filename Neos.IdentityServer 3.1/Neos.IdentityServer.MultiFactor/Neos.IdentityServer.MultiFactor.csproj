@@ -232,7 +232,9 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\SHtml.sv.resx" />
-    <EmbeddedResource Include="Resources\SHtml.uk.resx" />
+    <EmbeddedResource Include="Resources\SHtml.uk.resx">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\SInfos.da.resx" />
     <EmbeddedResource Include="Resources\SInfos.de.resx" />
     <EmbeddedResource Include="Resources\SInfos.es.resx" />
